@@ -125,7 +125,7 @@ objects:
             GOGS_HOSTNAME="gogs-$CICD_NAMESPACE.$HOSTNAME"
 
             oc new-app -f https://raw.githubusercontent.com/thmarth/openshift/master/cicd/gogs-persistent-template.yml \
-                --param=GOGS_VERSION=0.11.66 \
+                --param=GOGS_VERSION=0.11.34 \
                 --param=HOSTNAME=$GOGS_HOSTNAME \
                 --param=SKIP_TLS_VERIFY=true
 
