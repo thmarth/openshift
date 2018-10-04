@@ -8,7 +8,7 @@ metadata:
     iconClass: icon-jenkins
     tags: instant-app,jenkins,gogs,nexus,cicd
   name: cicd
-message: "Use the following credentials for login:\nJenkins: use your OpenShift credentials\nNexus: admin/admin123\nGogs Git Server: admin/admin"
+message: "Use the following credentials for login:\nJenkins: use your OpenShift credentials\nNexus: admin/admin123\nGogs Git Server: gogs/gogs"
 parameters:
 - description: Webhook secret
   from: '[a-zA-Z0-9]{8}'
@@ -26,76 +26,6 @@ objects:
   subjects:
   - kind: ServiceAccount
     name: default
-# Pipeline
-- apiVersion: v1
-  kind: BuildConfig
-  metadata:
-    annotations:
-      pipeline.alpha.openshift.io/uses: '[{"name": "jenkins", "namespace": "", "kind": "DeploymentConfig"}]'
-    labels:
-      app: cicd-pipeline
-      name: cicd-pipeline
-    name: tasks-pipeline
-  spec:
-    triggers:
-    - type: GitHub
-      github:
-        secret: ${WEBHOOK_SECRET}
-    - type: Generic
-      generic:
-        secret: ${WEBHOOK_SECRET}
-    runPolicy: Serial
-    source:
-      type: None
-    strategy:
-      jenkinsPipelineStrategy:
-        jenkinsfile: |-
-      type: JenkinsPipeline
-- apiVersion: v1
-  kind: ConfigMap
-  metadata:
-    labels:
-      app: cicd-pipeline
-      role: jenkins-slave
-    name: jenkins-slaves
-  data:
-    maven-template: |-
-      <org.csanchez.jenkins.plugins.kubernetes.PodTemplate>
-        <inheritFrom></inheritFrom>
-        <name>maven</name>
-        <privileged>false</privileged>
-        <alwaysPullImage>false</alwaysPullImage>
-        <instanceCap>2147483647</instanceCap>
-        <idleMinutes>0</idleMinutes>
-        <label>maven</label>
-        <serviceAccount>jenkins</serviceAccount>
-        <nodeSelector></nodeSelector>
-        <customWorkspaceVolumeEnabled>false</customWorkspaceVolumeEnabled>
-        <workspaceVolume class="org.csanchez.jenkins.plugins.kubernetes.volumes.workspace.EmptyDirWorkspaceVolume">
-          <memory>false</memory>
-        </workspaceVolume>
-        <volumes />
-        <containers>
-          <org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
-            <name>jnlp</name>
-            <image>registry.access.redhat.com/openshift3/jenkins-slave-maven-rhel7</image>
-            <privileged>false</privileged>
-            <alwaysPullImage>false</alwaysPullImage>
-            <workingDir>/tmp</workingDir>
-            <command></command>
-            <args>${computer.jnlpmac} ${computer.name}</args>
-            <ttyEnabled>false</ttyEnabled>
-            <resourceRequestCpu>200m</resourceRequestCpu>
-            <resourceRequestMemory>512Mi</resourceRequestMemory>
-            <resourceLimitCpu>2</resourceLimitCpu>
-            <resourceLimitMemory>4Gi</resourceLimitMemory>
-            <envVars/>
-          </org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
-        </containers>
-        <envVars/>
-        <annotations/>
-        <imagePullSecrets/>
-      </org.csanchez.jenkins.plugins.kubernetes.PodTemplate>
 # Setup CI/CD
 - apiVersion: batch/v1
   kind: Job
@@ -118,8 +48,9 @@ objects:
           - -x
           - -c
           - |
-            oc set resources dc/jenkins --limits=cpu=2,memory=2Gi --requests=cpu=100m,memory=512Mi
-            oc label dc jenkins app=jenkins --overwrite
+            oc new-app -f https://raw.githubusercontent.com/openshift/jenkins/master/openshift/templates/jenkins-persistent.json
+
+            sleep 5
 
             HOSTNAME=$(oc get route jenkins -o template --template='{{.spec.host}}' | sed "s/jenkins-${CICD_NAMESPACE}.//g")
             GOGS_HOSTNAME="gogs-$CICD_NAMESPACE.$HOSTNAME"
@@ -136,8 +67,8 @@ objects:
                 --param=MAX_MEMORY=2Gi
 
             GOGS_SVC=$(oc get svc gogs -o template --template='{{.spec.clusterIP}}')
-            GOGS_USER=admin
-            GOGS_PWD=admin
+            GOGS_USER=gogs
+            GOGS_PWD=gogs
 
             oc rollout status dc gogs
 
