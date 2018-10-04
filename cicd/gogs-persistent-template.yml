@@ -140,6 +140,9 @@ objects:
     host: ${HOSTNAME}
     to:
       name: ${APPLICATION_NAME}
+    tls:
+      termination: edge
+      insecureEdgeTerminationPolicy: Redirect
 - kind: DeploymentConfig
   apiVersion: v1
   metadata:

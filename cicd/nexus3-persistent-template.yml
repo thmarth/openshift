@@ -134,6 +134,9 @@ objects:
       kind: Service
       name: ${SERVICE_NAME}
       weight: 100
+    tls:
+      termination: edge
+      insecureEdgeTerminationPolicy: Allow
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
