@@ -1,6 +1,6 @@
 # Mini build from https://qiita.com/h-r-k-matsumoto/items/1725fc587ce127671560
 
-FROM hirokimatsumoto/alpine-openjdk-11:latest as jlink-package
+FROM docker.io/hirokimatsumoto/alpine-openjdk-11:latest as jlink-package
 # First: generate java runtime module by jlink.
 
 RUN jlink \
@@ -12,7 +12,7 @@ RUN jlink \
      --output /opt/jdk-11-mini-runtime
 
 # Second: generate run image.
-FROM alpine:3.8
+FROM docker.io/alpine:3.8
 
 ENV JAVA_HOME=/opt/jdk-11-mini-runtime
 ENV PATH="$PATH:$JAVA_HOME/bin"
