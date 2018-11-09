@@ -1,6 +1,6 @@
 # Mini build from https://qiita.com/h-r-k-matsumoto/items/1725fc587ce127671560
 
-FROM docker.io/hirokimatsumoto/alpine-openjdk-11:latest as jlink-package
+FROM hirokimatsumoto/alpine-openjdk-11:latest as jlink-package
 # First: generate java runtime module by jlink.
 
 RUN jlink \
@@ -12,11 +12,15 @@ RUN jlink \
      --output /opt/jdk-11-mini-runtime
 
 # Second: generate run image.
-FROM docker.io/alpine:3.8
+FROM alpine:3.8
 
 ENV JAVA_HOME=/opt/jdk-11-mini-runtime
 ENV PATH="$PATH:$JAVA_HOME/bin"
 
 COPY --from=jlink-package /opt/jdk-11-mini-runtime /opt/jdk-11-mini-runtime
+
+EXPOSE 8080
+
+ONBUILD COPY . /opt/spring-boot/
 
 CMD java -jar /opt/spring-boot/service.jar
