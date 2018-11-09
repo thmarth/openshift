@@ -1,0 +1,71 @@
+kind: Template
+apiVersion: v1
+metadata:
+  annotations:
+    description: The Gogs git server postinstall (https://gogs.io/)
+    tags: instant-app,gogs,go,golang
+  name: gogs
+objects:
+- kind: ConfigMap
+  apiVersion: v1
+  metadata:
+    name: gogs-config
+    labels:
+      app: ${APPLICATION_NAME}
+  data:
+    app.ini: |
+      RUN_MODE = prod
+      RUN_USER = gogs
+
+      [database]
+      DB_TYPE  = postgres
+      HOST     = ${APPLICATION_NAME}-postgresql:5432
+      NAME     = ${DATABASE_NAME}
+      USER     = ${DATABASE_USER}
+      PASSWD   = ${DATABASE_PASSWORD}
+
+      [repository]
+      ROOT = /opt/gogs/data/repositories
+
+      [server]
+      ROOT_URL=http://${HOSTNAME}
+      SSH_DOMAIN=${HOSTNAME}
+
+      [security]
+      INSTALL_LOCK = ${INSTALL_LOCK}
+
+      [service]
+      DISABLE_REGISTRATION = true
+      SHOW_REGISTRATION_BUTTON = false
+      REQUIRE_SIGNIN_VIEW = true
+      ENABLE_CAPTCHA = false
+
+      [webhook]
+      SKIP_TLS_VERIFY = ${SKIP_TLS_VERIFY}
+parameters:
+- description: The name for the application.
+  name: APPLICATION_NAME
+  required: true
+  value: gogs
+- description: 'Custom hostname for http service route.  Leave blank for default hostname, e.g.: <application-name>-<project>.<default-domain-suffix>'
+  name: HOSTNAME
+  required: true
+- displayName: Database Username
+  from: gogs
+  value: gogs
+  name: DATABASE_USER
+- displayName: Database Password
+  from: '[a-zA-Z0-9]{8}'
+  value: gogs
+  name: DATABASE_PASSWORD
+- displayName: Database Name
+  name: DATABASE_NAME
+  value: gogs
+- name: INSTALL_LOCK
+  displayName: Installation lock
+  description: 'If set to true, installation (/install) page will be disabled. Set to false if you want to run the installation wizard via web'
+  value: "true"
+- name: SKIP_TLS_VERIFY
+  displayName: Skip TLS verification on webhooks
+  description: Skip TLS verification on webhooks. Enable with caution!
+  value: "false"
