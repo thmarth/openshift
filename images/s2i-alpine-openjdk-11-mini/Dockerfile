@@ -10,7 +10,9 @@ RUN mkdir /opt; cd /opt; \
 ENV JAVA_HOME=/opt/java \
     PATH="$PATH:$JAVA_HOME/bin"
 
-RUN jlink \
+RUN JAVA_HOME=/opt/java \
+    PATH="$PATH:$JAVA_HOME/bin" \
+    jlink \
      --module-path /opt/java/jmods \
      --compress=2 \
      --add-modules jdk.jfr,jdk.management.agent,java.base,java.logging,java.xml,jdk.unsupported,java.sql,java.naming,java.desktop,java.management,java.security.jgss,java.instrument \
