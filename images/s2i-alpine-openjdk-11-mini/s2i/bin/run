@@ -7,4 +7,4 @@
 #	https://github.com/openshift/source-to-image/blob/master/docs/builder_image.md
 #
 
-exec java -jar /opt/spring-boot/service.jar
+exec java $JAVA_OPTS -jar /opt/spring-boot/service.jar
